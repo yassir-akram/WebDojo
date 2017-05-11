@@ -3,6 +3,8 @@ const app = express.Router();
 const config = require('config');
 const request = require('request');
 
+const userService = require('../server/userService');
+
 // Get the config const
 const PAGE_ACCESS_TOKEN = config.get('pageAccessToken');
 const VERIFY_TOKEN = config.get('verifyToken');
@@ -67,25 +69,32 @@ function receivedMessage(event) {
   var messageText = message.text;
   var messageAttachments = message.attachments;
 
-  if (messageText) {
-
-    // If we receive a text message, check to see if it matches a keyword
-    // and send back the example. Otherwise, just echo the text we received.
-    switch (messageText) {
-      case 'generic':
-        sendGenericMessage(senderID);
-        break;
-
-      default:
-        sendTextMessage(senderID, messageText);
+  if (userService.isUserKnown(senderID)) {
+    if (messageText) {
+  
+      // If we receive a text message, check to see if it matches a keyword
+      // and send back the example. Otherwise, just echo the text we received.
+      switch (messageText) {
+	case 'generic':
+	  sendGenericMessage(senderID);
+	break;
+	default:
+	  sendTextMessage(senderID, messageText);
+      }
+    } else if (messageAttachments) {
+      sendTextMessage(senderID, "Message with attachment received");
     }
-  } else if (messageAttachments) {
-    sendTextMessage(senderID, "Message with attachment received");
   }
+  else {
+    userService.addUser(senderID, "");
+    sendTextMessage(senderID, "Hello !");
+  }
+
 }
 
-function sendGenericMessage(recipientId, messageText) {
+function sendGenericMessage(recipientId) {
   // To be expanded in later sections
+  sendTextMessage(senderID, 'Ceci est un message générique.');
 }
 
 function sendTextMessage(recipientId, messageText) {
