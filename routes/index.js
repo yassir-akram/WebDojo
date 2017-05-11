@@ -4,17 +4,31 @@ const config = require('config');
 const request = require('request');
 
 const userService = require('../server/userService');
+const weatherService = require('../server/weatherService');
+const weatherData = require('../server/model/weatherData');
 
 // Get the config const
 const PAGE_ACCESS_TOKEN = config.get('pageAccessToken');
 const VERIFY_TOKEN = config.get('verifyToken');
 
 app.get('/', function(req, res, next) {
-    res.render('index');
+  res.render('index');
 });
 
 app.get('/weather', function(req, res) {
-  res.send(); 
+  var req = weatherService.getGeolocalisation("Palaiseau");
+  req.then(function(htmlStr) {
+     var loc = JSON.parse(htmlStr)["results"][0]["geometry"]["location"];
+     weatherService.getWeatherForecast(loc["lat"], loc["lng"]).then(function(htmlStr) {
+       weatherData(htmlStr);
+       res.send(city["name"]);
+     });
+   })
+     .catch(function(error) {
+       res.send();
+       console.error(error);
+   });
+  
 });
 
 
